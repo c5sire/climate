@@ -1,43 +1,43 @@
-setwd("D:\\apps\\Shiny example\\climate")
+setwd("D:\\apps\\Shiny example")
+library(stringr)
 
-data = read.csv("climate_data.csv", stringsAsFactors=F)
+data = read.csv("climate//climate_data.csv", stringsAsFactors=F, sep="\t")
 
-minDate = data[1,1]
-maxDate = data[nrow(data),1]
-print(maxDate)
+#minDate = data[1,"Date"]
+#maxDate = data[nrow(data),"Date"]
 
+selCountries = sort(unique(data$Country))
+#selYears = sort(unique(str_sub(data$Date, 1, 4)))
 
 
 
 shinyUI(pageWithSidebar(
-  headerPanel("Climate Data (Burundi-Gisozi)"),
+  headerPanel("Climate Data"),
   
   sidebarPanel(
     wellPanel(
-      p(strong("Variables")),
-      checkboxInput(inputId = "temp", label = "Temperature", value = TRUE),
-      checkboxInput(inputId = "prec", label = "Precipitation", value = FALSE),
-      checkboxInput(inputId = "rh", label = "RH", value = FALSE)
+      selectInput("country","Country:",selCountries),
+      uiOutput("location")
     ),
     
     wellPanel(
-      dateRangeInput("dateRange","Date range",min = minDate, max = maxDate, start=minDate, end=maxDate)
-
-     )
+      p(strong("Variables")),
+      checkboxInput(inputId = "TMEAN", label = "TMEAN", value = TRUE),
+      checkboxInput(inputId = "TMIN", label = "TMIN", value = TRUE),
+      checkboxInput(inputId = "TMAX", label = "TMAX", value = TRUE)
+    ),
+    
+    wellPanel(
+      uiOutput("year")
+      #checkboxGroupInput("year","Year:",selYears, selYears)#,
+      #selectInput("minMonth", "from month",1:12,1),
+      #uiOutput("maxMonth")
+    )
     
   ),
   
   mainPanel(
-    conditionalPanel(condition = "input.temp",
-                     br(),
-                     div(plotOutput(outputId = "plot_temp"))),
-    
-    conditionalPanel(condition = "input.prec",
-                     br(),
-                     div(plotOutput(outputId = "plot_prec"))),
-    
-    conditionalPanel(condition = "input.rh",
-                     br(),
-                     div(plotOutput(outputId = "plot_rh")))
+    br(),
+    div(plotOutput(outputId = "plot_temp"))
   )
 ))
