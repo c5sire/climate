@@ -3,13 +3,7 @@ library(stringr)
 
 data = read.csv("climate//climate_data.csv", stringsAsFactors=F, sep="\t")
 
-#minDate = data[1,"Date"]
-#maxDate = data[nrow(data),"Date"]
-
-selCountries = sort(unique(data$Country))
-#selYears = sort(unique(str_sub(data$Date, 1, 4)))
-
-
+selCountries = sort(unique(data$CNTRY))
 
 shinyUI(pageWithSidebar(
   headerPanel("Climate Data"),
@@ -29,9 +23,6 @@ shinyUI(pageWithSidebar(
     
     wellPanel(
       uiOutput("year")
-      #checkboxGroupInput("year","Year:",selYears, selYears)#,
-      #selectInput("minMonth", "from month",1:12,1),
-      #uiOutput("maxMonth")
     )
     
   ),
