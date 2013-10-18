@@ -16,9 +16,15 @@ shinyUI(pageWithSidebar(
     
     wellPanel(
       p(strong("Variables")),
-      checkboxInput(inputId = "TMEAN", label = "TMEAN", value = TRUE),
-      checkboxInput(inputId = "TMIN", label = "TMIN", value = TRUE),
-      checkboxInput(inputId = "TMAX", label = "TMAX", value = TRUE)
+      checkboxInput(inputId = "TMEAN", label = "T mean", value = TRUE),
+      checkboxInput(inputId = "TMIN", label = "T minimum", value = TRUE),
+      checkboxInput(inputId = "TMAX", label = "T maximum", value = TRUE),
+      
+      checkboxInput(inputId = "RAIN", label = "Precipitation", value = TRUE),
+      
+      checkboxInput(inputId = "RHMEAN", label = "Rel. Humiditiy mean", value = TRUE),
+      checkboxInput(inputId = "RHMIN", label = "Rel. Humiditiy min", value = TRUE),
+      checkboxInput(inputId = "RHMAX", label = "Rel. Humiditiy max", value = TRUE)
     ),
     
     wellPanel(
@@ -29,6 +35,11 @@ shinyUI(pageWithSidebar(
   
   mainPanel(
     br(),
-    div(plotOutput(outputId = "plot_temp"))
+    div(plotOutput(outputId = "plot_temp")),
+    br(),
+    div(plotOutput(outputId = "plot_rain")),
+    br(),
+    div(plotOutput(outputId = "plot_rh"))
+    
   )
 ))
