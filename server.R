@@ -1,5 +1,6 @@
 library(stringr)
 setwd("D:\\apps\\Shiny example")
+months = c("Jan","Feb","Mar","Apr","May","Jun", "Jul","Aug","Sep", "Oct", "Nov", "Dec")
 
 data = read.csv('climate/climate_data.csv', stringsAsFactors = FALSE, sep="\t")
 
@@ -27,14 +28,14 @@ filterLocality <- function (data, country=NA, locality=NA) {
   data
 }
 
-fillMissingDays <- function (data) {
-  dr = as.Date(c(data[1,"Date"], data[nrow(data),"Date"]),"%Y-%m-%d")
-  Date = seq.Date(from=as.Date(dr[1]), to = as.Date(dr[2]), by='day')
-  xdata = as.data.frame(Date, stringsAsF=F)
-  xdata[,1]= as.character(xdata[,1])
-  data = merge(xdata, data, by="Date", all=T)
-  data
-}
+# fillMissingDays <- function (data) {
+#   dr = as.Date(c(data[1,"Date"], data[nrow(data),"Date"]),"%Y-%m-%d")
+#   Date = seq.Date(from=as.Date(dr[1]), to = as.Date(dr[2]), by='day')
+#   xdata = as.data.frame(Date, stringsAsF=F)
+#   xdata[,1]= as.character(xdata[,1])
+#   data = merge(xdata, data, by="Date", all=T)
+#   data
+# }
 
 makeRefDayList <- function(){
   months = c(1,31, 2,28, 3,31, 4,30, 5, 31, 6, 30, 7,31, 8,31, 9,30, 10,31, 11,30, 12,31)
@@ -94,11 +95,20 @@ varLine <- function (Y,var, color, year) {
   }
 }
 
+
+#' plot a time series of weather variables
+#' 
+#' Time is a Julian year (without Feb. 29th)
+#' 
+#' 
 plotTimeSeries <-function(data, main, ylab, varName, varState, 
                           varColor = c("red","blue","darkgreen"),
                               country=NA, locality = NA, year=NA) {
+
  data = filterLocality(data, country, locality)
  
+ # prepare some helper variables: the reference Julian days; variable range, 
+ # temp database by Julian day
  yearRg = makeRefDayList()
  x = 1:nrow(yearRg)
  y = rep(NA,length(x))
@@ -108,16 +118,14 @@ plotTimeSeries <-function(data, main, ylab, varName, varState,
  
  plot(x,y, ylim=trange, xlab="Julian day", ylab=ylab,  main=main, xaxt="n")
  addGrid(data, varName, ticks)
+ axis(1, labels=months, at=ticks)
  
  m = length(varName)
  for(i in 1:m){
    if(varState[i]) varLine(Y,varName[i], varColor[i], year)
  }
-
- # for the time being just 5 tick marks
  
- axis(1, labels=c("Jan","Feb","Mar","Apr","May","Jun", "Jul","Aug","Sep", "Oct", "Nov", "Dec"), 
-      at=ticks)
+ 
 }
 
 
