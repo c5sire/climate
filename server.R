@@ -37,17 +37,20 @@ filterLocality <- function (data, country=NA, locality=NA) {
 #   data
 # }
 
-makeRefDayList <- function(){
-  months = c(1,31, 2,28, 3,31, 4,30, 5, 31, 6, 30, 7,31, 8,31, 9,30, 10,31, 11,30, 12,31)
-  months = matrix(months, nrow=12, byrow=T)
+makeRefDayList <- function(month=c("Jan","Dec")){
+  dmonths = c(1,31, 2,28, 3,31, 4,30, 5, 31, 6, 30, 7,31, 8,31, 9,30, 10,31, 11,30, 12,31)
+  dmonths = matrix(dmonths, nrow=12, byrow=T)
   out=NULL
-  for(i in 1:12) out=c(out, paste(str_pad(i,2,pad="0"),"-",str_pad(1:months[i,2],2,pad="0"),sep=""))
+  ii = which(months %in% month)
+  if(length(ii)==1) ii=c(ii,ii)
+  #print(ii)
+  for(i in ii[1]:ii[2]) out=c(out, paste(str_pad(i,2,pad="0"),"-",str_pad(1:dmonths[i,2],2,pad="0"),sep=""))
   out = as.data.frame(out, stringsAsFactors = FALSE)
   names(out)[1] = "JulDay"
   out
 }
 
-getY <- function(data){
+getY <- function(data, yearRg=NA){
   yer = str_sub(data$Date,1,4)
   JulDay = str_sub(data$Date,6,10)
   
@@ -60,10 +63,11 @@ getY <- function(data){
   
   m = length(vrs)
   res = list()
-  rdl = makeRefDayList()
+  #rdl = makeRefDayList()
+  rdl = yearRg
   
-  j = 1
-  i = 1
+#   j = 1
+#   i = 1
   n = length(yrs)
   for(j in 1:m){
     tmp = rdl
@@ -73,7 +77,7 @@ getY <- function(data){
       sdt = sdt[,c(2,9:ncol(sdt))]
       dps = duplicated(sdt$JulDay)
       sdt = sdt[!dps,]
-      print(vrs[j])
+      #print(vrs[j])
       
       tmp = merge(tmp, sdt[,c("JulDay",nms[j])], by="JulDay", all.x = TRUE)
       names(tmp)[i+1] = yrs[i]
@@ -103,28 +107,33 @@ varLine <- function (Y,var, color, year) {
 #' 
 plotTimeSeries <-function(data, main, ylab, varName, varState, 
                           varColor = c("red","blue","darkgreen"),
-                              country=NA, locality = NA, year=NA) {
+                              country=NA, locality = NA, year=NA, month=NA) {
 
  data = filterLocality(data, country, locality)
- 
- # prepare some helper variables: the reference Julian days; variable range, 
+ #print(month)
+ #prepare some helper variables: the reference Julian days; variable range, 
  # temp database by Julian day
- yearRg = makeRefDayList()
+ yearRg = makeRefDayList(month)
  x = 1:nrow(yearRg)
  y = rep(NA,length(x))
- Y = getY(data)
+ Y = getY(data, yearRg)
  trange = c(round(min(data[,varName],na.rm=T),0), round(max(data[,varName], na.rm=T),0))
+ #print(trange)
  ticks = getTicks(yearRg)
+ 
+ #print("2")
  
  plot(x,y, ylim=trange, xlab="Julian day", ylab=ylab,  main=main, xaxt="n")
  addGrid(data, varName, ticks)
- axis(1, labels=months, at=ticks)
- 
+ wm = which(months %in% month)
+ if(length(wm)==1) wm = c(wm, wm)
+ axis(1, labels=months[wm[1]:wm[2]], at=ticks)
+ #print("3")
  m = length(varName)
  for(i in 1:m){
    if(varState[i]) varLine(Y,varName[i], varColor[i], year)
  }
- 
+ #print("4")
  
 }
 
@@ -145,10 +154,12 @@ shinyServer(function(input, output) {
     checkboxGroupInput("year","Year:",selYears, selYears)
   })
   
-#   output$maxMonth <- renderUI({
-#     mm = input$minMonth
-#     selectInput("maxMonth", "till month", mm:12, 12)
-#   })
+  output$tillMonth <- renderUI({
+    mm = input$fromMonth
+    wm = which(months %in% mm)
+    print(wm)
+    selectInput("tillMonth", "Till month", months[wm:12], "Dec")
+  })
 
   output$plot_temp <- renderPlot({
     plotTimeSeries(data, "Temperature", "degrees C",
@@ -156,7 +167,8 @@ shinyServer(function(input, output) {
                        varState = c(input$TMEAN, input$TMIN, input$TMAX), 
                        country = input$country, 
                        locality = input$locs, 
-                       year = input$year )
+                       year = input$year,
+                   month = c(input$fromMonth, input$tillMonth))
    })
   
   output$plot_rain <- renderPlot({
@@ -166,7 +178,8 @@ shinyServer(function(input, output) {
                    varColor = c("blue"), 
                    country = input$country, 
                    locality = input$locs, 
-                   year = input$year )
+                   year = input$year,
+                   month = c(input$fromMonth, input$tillMonth))
   })
   
   output$plot_rh <- renderPlot({
@@ -175,7 +188,8 @@ shinyServer(function(input, output) {
                    varState = c(input$RHMEAN, input$RHMIN, input$RHMAX), 
                    country = input$country, 
                    locality = input$locs, 
-                   year = input$year )
+                   year = input$year,
+                   month = c(input$fromMonth, input$tillMonth))
   })
 })
 

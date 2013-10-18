@@ -1,6 +1,8 @@
 setwd("D:\\apps\\Shiny example")
 library(stringr)
 
+months = c("Jan","Feb","Mar","Apr","May","Jun", "Jul","Aug","Sep", "Oct", "Nov", "Dec")
+
 data = read.csv("climate//climate_data.csv", stringsAsFactors=F, sep="\t")
 
 selCountries = sort(unique(data$CNTRY))
@@ -28,8 +30,16 @@ shinyUI(pageWithSidebar(
     ),
     
     wellPanel(
+      selectInput("fromMonth","From month",months),
+      #selectInput("tillMonth","Till month",months, "Dec")
+      uiOutput("tillMonth")
+    ),
+    
+    
+    wellPanel(
       uiOutput("year")
     )
+    
     
   ),
   
