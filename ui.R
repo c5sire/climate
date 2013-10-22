@@ -5,7 +5,9 @@ months = c("Jan","Feb","Mar","Apr","May","Jun", "Jul","Aug","Sep", "Oct", "Nov",
 
 data = read.csv("climate//climate_data.csv", stringsAsFactors=F, sep="\t")
 
+#print(data)
 selCountries = sort(unique(data$CNTRY))
+#print(selCountries)
 
 shinyUI(pageWithSidebar(
   headerPanel("Climate Data"),
@@ -13,7 +15,7 @@ shinyUI(pageWithSidebar(
   sidebarPanel(
     wellPanel(
       selectInput("country","Country:",selCountries),
-      uiOutput("location")
+      uiOutput("uilocation")
     ),
     
     wellPanel(
@@ -32,12 +34,12 @@ shinyUI(pageWithSidebar(
     wellPanel(
       selectInput("fromMonth","From month",months),
       #selectInput("tillMonth","Till month",months, "Dec")
-      uiOutput("tillMonth")
+      uiOutput("uitillMonth")
     ),
     
     
     wellPanel(
-      uiOutput("year")
+      uiOutput("uiyear")
     )
     
     

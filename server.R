@@ -13,18 +13,25 @@ getTicks <- function (yearRg) {
 }
 
 addGrid <- function (data, varName, ticks) {
-  trange = c(min(data[,varName], na.rm=T), max(data[,varName], na.rm=T))
-  x = round(trange[1],0) : round(trange[2],0)
-  x = x[x %% 5==0]
-  abline(h=x, col="grey90")
-  abline(v=ticks, col="grey90")
+  varName = varName[varName %in% names(data)]
+  if(!all(is.na(data[,varName]))){
+    trange = c(min(data[,varName], na.rm=T), max(data[,varName], na.rm=T))
+    x = round(trange[1],0) : round(trange[2],0)
+    #print(x)
+    x = x[x %% 5==0]
+    abline(h=x, col="grey90")
+    abline(v=ticks, col="grey90")
+  }
 }
 
 filterLocality <- function (data, country=NA, locality=NA) {
   #print(country)
   if(!is.na(country)) data = data[data$CNTRY == country,] 
   #print(head(data))
-  if(!is.na(locality)) data = data[data$ADMIN4 == locality,] 
+  if(length(locality)>0)  {
+    if(!is.na(locality)) data = data[data$ADMIN4 == locality,] 
+  }
+    
   data
 }
 
@@ -80,7 +87,7 @@ getY <- function(data, yearRg=NA){
       #print(vrs[j])
       
       tmp = merge(tmp, sdt[,c("JulDay",nms[j])], by="JulDay", all.x = TRUE)
-      names(tmp)[i+1] = yrs[i]
+      if(length(yrs[i]) > 0)  names(tmp)[i+1] = yrs[i]
       
     }
     res[[names(data)[vrs[j]]]] = tmp    
@@ -93,7 +100,8 @@ varLine <- function (Y,var, color, year) {
   if(n>0){
     for(i in 1:n){
       yy = Y[[var]]
-      lines(yy[,year[i]],col=color)  
+      #print(yy)
+      if(year[i] %in% names(yy)) lines(yy[,year[i]],col=color)  
     }
     
   }
@@ -108,33 +116,33 @@ varLine <- function (Y,var, color, year) {
 plotTimeSeries <-function(data, main, ylab, varName, varState, 
                           varColor = c("red","blue","darkgreen"),
                               country=NA, locality = NA, year=NA, month=NA) {
-
+try({
  data = filterLocality(data, country, locality)
- #print(month)
+ vn = varName %in% names(data)
+ varName = varName[vn]
+ varState = varState[vn]
+ varColor = varColor[vn]
  #prepare some helper variables: the reference Julian days; variable range, 
  # temp database by Julian day
  yearRg = makeRefDayList(month)
  x = 1:nrow(yearRg)
  y = rep(NA,length(x))
  Y = getY(data, yearRg)
+ if(!all(is.na(data[,varName]))){
  trange = c(round(min(data[,varName],na.rm=T),0), round(max(data[,varName], na.rm=T),0))
- #print(trange)
  ticks = getTicks(yearRg)
  
- #print("2")
- 
- plot(x,y, ylim=trange, xlab="Julian day", ylab=ylab,  main=main, xaxt="n")
+ if(!is.infinite(trange[1]))  plot(x,y, ylim=trange, xlab="Julian day", ylab=ylab,  main=main, xaxt="n")
  addGrid(data, varName, ticks)
  wm = which(months %in% month)
  if(length(wm)==1) wm = c(wm, wm)
  axis(1, labels=months[wm[1]:wm[2]], at=ticks)
- #print("3")
  m = length(varName)
  for(i in 1:m){
    if(varState[i]) varLine(Y,varName[i], varColor[i], year)
  }
- #print("4")
- 
+ }
+})
 }
 
 
@@ -142,22 +150,25 @@ plotTimeSeries <-function(data, main, ylab, varName, varState,
 
 shinyServer(function(input, output) {
 
-  output$location <- renderUI({
+  output$uilocation <- renderUI({
     data = data[data$CNTRY == input$country,"ADMIN4"]
+    #print(data)
     locations = sort(unique(data))
     selectInput("locs", "Locations:", locations)
   })
   
-  output$year <- renderUI({
+  output$uiyear <- renderUI({
+    selYears = ""
     data = data[data$CNTRY == input$country & data$ADMIN4 == input$locs,]
     selYears = sort(unique(str_sub(data$Date, 1, 4)))
-    checkboxGroupInput("year","Year:",selYears, selYears)
+    #print(selYears)
+    if(length(selYears>0))     checkboxGroupInput("year","Year:",selYears, selYears)
   })
   
-  output$tillMonth <- renderUI({
+  output$uitillMonth <- renderUI({
     mm = input$fromMonth
     wm = which(months %in% mm)
-    print(wm)
+    #print(wm)
     selectInput("tillMonth", "Till month", months[wm:12], "Dec")
   })
 
