@@ -46,6 +46,8 @@ shinyUI(pageWithSidebar(
   ),
   
   mainPanel(
+    p("Walter-Lieth climate chart"),
+    div(plotOutput(outputId = "plot_wl")),
     br(),
     div(plotOutput(outputId = "plot_temp")),
     br(),

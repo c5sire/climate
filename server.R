@@ -1,4 +1,6 @@
 library(stringr)
+library(climatol)
+library(climclass)
 setwd("D:\\apps\\Shiny example")
 months = c("Jan","Feb","Mar","Apr","May","Jun", "Jul","Aug","Sep", "Oct", "Nov", "Dec")
 
@@ -171,8 +173,15 @@ shinyServer(function(input, output) {
     #print(wm)
     selectInput("tillMonth", "Till month", months[wm:12], "Dec")
   })
+  
+  output$plot_wl <- renderPlot({
+    data = filterLocality(data, input$country, input$locs)
+    print(str(data))
+    chartWL(data)
+  })
 
   output$plot_temp <- renderPlot({
+    
     plotTimeSeries(data, "Temperature", "degrees C",
                        varName = c("TMEAN","TMIN","TMAX" ),
                        varState = c(input$TMEAN, input$TMIN, input$TMAX), 
