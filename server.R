@@ -1,8 +1,9 @@
+setwd("D:\\apps\\Shiny example")
 library(stringr)
 library(climatol)
 library(climclass)
-setwd("D:\\apps\\Shiny example")
-months = c("Jan","Feb","Mar","Apr","May","Jun", "Jul","Aug","Sep", "Oct", "Nov", "Dec")
+
+months = c("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 
 data = read.csv('climate/climate_data.csv', stringsAsFactors = FALSE, sep="\t")
 
@@ -19,7 +20,6 @@ addGrid <- function (data, varName, ticks) {
   if(!all(is.na(data[,varName]))){
     trange = c(min(data[,varName], na.rm=T), max(data[,varName], na.rm=T))
     x = round(trange[1],0) : round(trange[2],0)
-    #print(x)
     x = x[x %% 5==0]
     abline(h=x, col="grey90")
     abline(v=ticks, col="grey90")
@@ -27,13 +27,19 @@ addGrid <- function (data, varName, ticks) {
 }
 
 filterLocality <- function (data, country=NA, locality=NA) {
-  #print(country)
   if(!is.na(country)) data = data[data$CNTRY == country,] 
-  #print(head(data))
   if(length(locality)>0)  {
     if(!is.na(locality)) data = data[data$ADMIN4 == locality,] 
   }
-    
+  data
+}
+
+
+filterLocality2 <- function (data, country2=NA, locality2=NA) {
+  if(!is.na(country2)) data = data[data$CNTRY == country2,]
+  if(length(locality2)>0) {
+    if(!is.na(locality2)) data = data[data$ADMIN4 == locality2,]
+  }
   data
 }
 
@@ -72,11 +78,8 @@ getY <- function(data, yearRg=NA){
   
   m = length(vrs)
   res = list()
-  #rdl = makeRefDayList()
   rdl = yearRg
   
-#   j = 1
-#   i = 1
   n = length(yrs)
   for(j in 1:m){
     tmp = rdl
@@ -86,10 +89,9 @@ getY <- function(data, yearRg=NA){
       sdt = sdt[,c(2,9:ncol(sdt))]
       dps = duplicated(sdt$JulDay)
       sdt = sdt[!dps,]
-      #print(vrs[j])
-      
+            
       tmp = merge(tmp, sdt[,c("JulDay",nms[j])], by="JulDay", all.x = TRUE)
-      if(length(yrs[i]) > 0)  names(tmp)[i+1] = yrs[i]
+      if(length(yrs[i]) > 0) names(tmp)[i+1] = yrs[i]
       
     }
     res[[names(data)[vrs[j]]]] = tmp    
@@ -102,7 +104,6 @@ varLine <- function (Y,var, color, year) {
   if(n>0){
     for(i in 1:n){
       yy = Y[[var]]
-      #print(yy)
       if(year[i] %in% names(yy)) lines(yy[,year[i]],col=color)  
     }
     
@@ -148,16 +149,55 @@ try({
 }
 
 
+plotTimeSeries2 <-function(data, dateRange, country2=NA, locality2 = NA) {
+  #print(dateRange)
+  #print(country2)
+  
+  data = filterLocality2(data, country2, locality2)
+  #x = 1:nrow(data)
+  #plot(x,data[,"TMEAN"])
+  
+  data=data[data$Date >= dateRange[1] & data$Date <= dateRange[2],]
+  
+  x = 1:nrow(data)
+  plot(x,data[,"TMEAN"], type="l", col="red", ylim=trange, xlab="Date", ylab="degrees C", xaxt="n",
+       main="Temperature", sub="years")
+  abline(h=5, col="grey90")
+  abline(h=15, col="grey90")
+  lines(data[,"TMEAN"],col="red")
+  #plot(x,data[,"TMEAN"], type="l", col="red", ylim=trange, xlab="Date", ylab="degrees C", xaxt="n", add=T)
+  lines(data[,"TMIN"],col="blue")
+  lines(data[,"TMAX"],col="darkgreen")
+  
+  # for the time being just 5 tick marks
+  tickN = 5
+  ticks = integer(tickN)
+  
+  ticks[1] = 1
+  ticks[5] = nrow(data)
+  ticks[3] = ticks[1] + round(((ticks[5]-ticks[1])/2),0)
+  ticks[2] = ticks[1] + round(((ticks[3]-ticks[1])/2),0)
+  ticks[4] = ticks[3] + round(((ticks[5]-ticks[3])/2),0)
+  
+  axis(1, labels=data$Date[ticks], at=ticks)
+}
 
 
 shinyServer(function(input, output) {
 
   output$uilocation <- renderUI({
     data = data[data$CNTRY == input$country,"ADMIN4"]
-    #print(data)
     locations = sort(unique(data))
     selectInput("locs", "Locations:", locations)
   })
+  
+  
+  output$uilocation2 <- renderUI({
+    data = data[data$CNTRY == input$country2,"ADMIN4"]
+    locations2 = sort(unique(data))
+    selectInput("locs2", "Locations:", locations2)
+  })
+  
   
   output$uiyear <- renderUI({
     selYears = ""
@@ -176,7 +216,7 @@ shinyServer(function(input, output) {
   
   output$plot_wl <- renderPlot({
     data = filterLocality(data, input$country, input$locs)
-    #print(str(data))
+
     if(nrow(data)>1) chartWL(data)
   })
 
@@ -211,6 +251,39 @@ shinyServer(function(input, output) {
                    year = input$year,
                    month = c(input$fromMonth, input$tillMonth))
   })
+  
+  ##########add
+  output$test <- renderPlot({
+    minDate = input$dateRange[1]
+    maxDate = input$dateRange[2]
+    dateRange = paste(minDate,"::", maxDate,sep="")
+    plotTimeSeries2(data,
+                    input$dateRange,
+                    country2 = input$country2, 
+                    locality2 = input$locs2)
+  })
+  ##########
+  
+  output$uiDateRange <- renderUI({
+    #filter for the locality
+    #result: table for one location
+    data = filterLocality(data, country=input$country2, locality=input$locs2)
+
+    #Date column has all dates
+    #date format yyyy-mm-dd
+
+    #To get minimum and maximum date from here:
+    #sort data$Date to be sure all dates from min to max
+    
+    sdate = sort(data$Date)
+    #minDate = 1st entry
+    minDate = sdate[1]
+    #maxDate = last entry
+    maxDate = sdate[length(sdate)]
+    
+    dateRangeInput("dateRange","Date range",min = minDate, max = maxDate, start=minDate, end=maxDate)
+  })
+  
 })
 
 
