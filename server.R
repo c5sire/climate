@@ -1,6 +1,7 @@
 library(stringr)
 library(climatol)
 library(climclass)
+#asa
 setwd("D:\\apps\\Shiny example")
 months = c("Jan","Feb","Mar","Apr","May","Jun", "Jul","Aug","Sep", "Oct", "Nov", "Dec")
 
