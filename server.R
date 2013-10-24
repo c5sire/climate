@@ -176,8 +176,8 @@ shinyServer(function(input, output) {
   
   output$plot_wl <- renderPlot({
     data = filterLocality(data, input$country, input$locs)
-    print(str(data))
-    chartWL(data)
+    #print(str(data))
+    if(nrow(data)>1) chartWL(data)
   })
 
   output$plot_temp <- renderPlot({
