@@ -45,7 +45,7 @@ shinyUI(pageWithSidebar(
                        p(strong("Precipitation:")),
                        checkboxInput(inputId = "RAIN", label = "Precipitation", value = TRUE),
                        br(),
-                       p(strong("Relative humidit:")),
+                       p(strong("Relative humidity:")),
                        checkboxInput(inputId = "RHMEAN", label = "Rel. Humiditiy mean", value = TRUE),
                        checkboxInput(inputId = "RHMIN", label = "Rel. Humiditiy min", value = TRUE),
                        checkboxInput(inputId = "RHMAX", label = "Rel. Humiditiy max", value = TRUE)

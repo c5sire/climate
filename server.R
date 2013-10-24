@@ -160,26 +160,29 @@ plotTimeSeries2 <-function(data, dateRange, country2=NA, locality2 = NA) {
   data=data[data$Date >= dateRange[1] & data$Date <= dateRange[2],]
   
   x = 1:nrow(data)
-  plot(x,data[,"TMEAN"], type="l", col="red", ylim=trange, xlab="Date", ylab="degrees C", xaxt="n",
-       main="Temperature", sub="years")
-  abline(h=5, col="grey90")
-  abline(h=15, col="grey90")
-  lines(data[,"TMEAN"],col="red")
-  #plot(x,data[,"TMEAN"], type="l", col="red", ylim=trange, xlab="Date", ylab="degrees C", xaxt="n", add=T)
-  lines(data[,"TMIN"],col="blue")
-  lines(data[,"TMAX"],col="darkgreen")
-  
-  # for the time being just 5 tick marks
-  tickN = 5
-  ticks = integer(tickN)
-  
-  ticks[1] = 1
-  ticks[5] = nrow(data)
-  ticks[3] = ticks[1] + round(((ticks[5]-ticks[1])/2),0)
-  ticks[2] = ticks[1] + round(((ticks[3]-ticks[1])/2),0)
-  ticks[4] = ticks[3] + round(((ticks[5]-ticks[3])/2),0)
-  
-  axis(1, labels=data$Date[ticks], at=ticks)
+  if(length(x) == nrow(data)){
+    if(!is.infinite(trange[1]))  plot(x,data[,"TMEAN"], type="l", col="red", ylim=trange, xlab="Date", ylab="degrees C", xaxt="n",
+                                      main="Temperature", sub="years")
+    abline(h=5, col="grey90")
+    abline(h=15, col="grey90")
+    lines(data[,"TMEAN"],col="red")
+    #plot(x,data[,"TMEAN"], type="l", col="red", ylim=trange, xlab="Date", ylab="degrees C", xaxt="n", add=T)
+    lines(data[,"TMIN"],col="blue")
+    lines(data[,"TMAX"],col="darkgreen")
+    
+    # for the time being just 5 tick marks
+    tickN = 5
+    ticks = integer(tickN)
+    
+    ticks[1] = 1
+    ticks[5] = nrow(data)
+    ticks[3] = ticks[1] + round(((ticks[5]-ticks[1])/2),0)
+    ticks[2] = ticks[1] + round(((ticks[3]-ticks[1])/2),0)
+    ticks[4] = ticks[3] + round(((ticks[5]-ticks[3])/2),0)
+    
+    axis(1, labels=data$Date[ticks], at=ticks)
+    
+  }
 }
 
 
@@ -267,18 +270,21 @@ shinyServer(function(input, output) {
   output$uiDateRange <- renderUI({
     #filter for the locality
     #result: table for one location
+    #print("-1")
     data = filterLocality(data, country=input$country2, locality=input$locs2)
     #Date column has all dates
     #date format yyyy-mm-dd
 
     #To get minimum and maximum date from here:
     #sort data$Date to be sure all dates from min to max
-    
+    #print("0")
     sdate = sort(data$Date)
     #minDate = 1st entry
     minDate = sdate[1]
     #maxDate = last entry
+    #print("1")
     maxDate = sdate[length(sdate)]
+    #print("2")
     #minDate = 1st entry
     #maxDate = last entry
     dateRangeInput("dateRange","Date range",min = minDate, max = maxDate, start=minDate, end=maxDate)
