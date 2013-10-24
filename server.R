@@ -268,7 +268,6 @@ shinyServer(function(input, output) {
     #filter for the locality
     #result: table for one location
     data = filterLocality(data, country=input$country2, locality=input$locs2)
-
     #Date column has all dates
     #date format yyyy-mm-dd
 
@@ -280,7 +279,8 @@ shinyServer(function(input, output) {
     minDate = sdate[1]
     #maxDate = last entry
     maxDate = sdate[length(sdate)]
-    
+    #minDate = 1st entry
+    #maxDate = last entry
     dateRangeInput("dateRange","Date range",min = minDate, max = maxDate, start=minDate, end=maxDate)
   })
   
